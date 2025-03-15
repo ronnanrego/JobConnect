@@ -8,10 +8,10 @@ const PORT = 3000;
 
 // PostgreSQL connection (Hardcoded)
 const pool = new Pool({
-    user: "postgres",
+    user: "postgres",// dataabse user
     host: "localhost",
-    database: "job_db",
-    password: "D3434@dv", // Change this
+    database: "job_db",//your database name
+    password: "your_password", // Change this to your server password
     port: 5432,
 });
 
