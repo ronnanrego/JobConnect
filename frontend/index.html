@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Matching System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f4;
+        }
+        .container {
+            width: 50%;
+            margin: 30px auto;
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .job-list {
+            margin-top: 20px;
+        }
+        .job-item {
+            background: #e9ecef;
+            padding: 10px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Job Matching System</h2>
+
+        <h3>Post a Job</h3>
+        <input type="text" id="title" placeholder="Job Title">
+        <input type="text" id="company" placeholder="Company Name">
+        <input type="text" id="location" placeholder="Location">
+        <input type="text" id="skills" placeholder="Required Skills (comma separated)">
+        <button onclick="postJob()">Post Job</button>
+
+        <h3>Search Jobs</h3>
+        <input type="text" id="searchSkills" placeholder="Enter skills (comma separated)">
+        <button onclick="searchJobs()">Search Jobs</button>
+
+        <h3>Available Jobs</h3>
+        <button onclick="fetchJobs()">Refresh Jobs</button>
+        <div class="job-list" id="jobList"></div>
+    </div>
+
+    <script>
+        // Function to Post a Job
+        async function postJob() {
+            const title = document.getElementById("title").value;
+            const company = document.getElementById("company").value;
+            const location = document.getElementById("location").value;
+            const skills = document.getElementById("skills").value.split(",").map(s => s.trim());
+
+            if (!title || !company || !location || skills.length === 0) {
+                alert("Please fill all fields!");
+                return;
+            }
+
+            const response = await fetch("http://localhost:3000/api/jobs", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, company, location, skills })
+            });
+
+            const result = await response.json();
+            alert(result.message);
+            fetchJobs();
+        }
+
+        // Function to Fetch Jobs
+        async function fetchJobs() {
+            const response = await fetch("http://localhost:3000/api/jobs");
+            const jobs = await response.json();
+            const jobList = document.getElementById("jobList");
+            jobList.innerHTML = jobs.map(job => `
+                <div class="job-item">
+                    <strong>${job.title}</strong> at <em>${job.company}</em> in ${job.location}
+                    <br> Skills: ${job.skills.join(", ")}
+                </div>
+            `).join("");
+        }
+
+        // Function to Search Jobs by Skills
+        async function searchJobs() {
+            const skills = document.getElementById("searchSkills").value;
+            if (!skills) {
+                alert("Please enter skills!");
+                return;
+            }
+
+            const response = await fetch(`http://localhost:3000/api/jobs/search?skills=${skills}`);
+            const jobs = await response.json();
+            const jobList = document.getElementById("jobList");
+
+            if (jobs.length === 0) {
+                jobList.innerHTML = "<p>No jobs found matching your skills.</p>";
+                return;
+            }
+
+            jobList.innerHTML = jobs.map(job => `
+                <div class="job-item">
+                    <strong>${job.title}</strong> at <em>${job.company}</em> in ${job.location}
+                    <br> Skills: ${job.skills.join(", ")}
+                </div>
+            `).join("");
+        }
+
+        // Load jobs on page load
+        window.onload = fetchJobs;
+    </script>
+
+</body>
+</html>
